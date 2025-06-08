@@ -26,4 +26,5 @@ I don't like AI "art" but the homework stated that I had to make a logo using AI
 
 - AI is still far from replacing humans - it makes some pretty dumb mistakes
 - AI likes to hallucinate commands and functions that don't exist
-- Copilot can actually run terminal commands, which is pretty neat
+- Copilot can actually run terminal commands, which is pretty neat when it works
+- AI art is mid
