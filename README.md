@@ -2,7 +2,7 @@
 
 This is a project that was made using GitHub Copilot Claude Sonnet 4.
 
-I normally don't use AI like this - mainly just using Copilot for autocompletions - but I got schoolwork that required me to make a website entirely using AI. Since we could make any website we wanted, I asked @syylaxx for an idea.
+I normally don't use AI like this - mainly just using Copilot for autocompletions - but I got schoolwork that required me to make a website entirely using AI. Since we could make any website we wanted, I asked @syylaxx for an idea and to generate the logo cuz I ran out of daily usage on ChatGPT while working on this 💀.
 
 ## Development Process
 
