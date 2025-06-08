@@ -20,12 +20,11 @@ import { interval, Subscription } from 'rxjs';
           <div class="current-info">
             <span class="label">Current:</span>
             <span class="value">{{ gameState.currentArticle }}</span>
-          </div>
-          <div class="stats">
+          </div>          <div class="stats">
             <span class="label">Time:</span>
-            <span class="value">{{ formatTime(elapsedTime) }}</span>
+            <span class="value time-display">{{ formatTime(elapsedTime) }}</span>
             <span class="label">Articles:</span>
-            <span class="value">{{ gameState.clickCount }}</span>
+            <span class="value articles-display">{{ gameState.clickCount }}</span>
           </div>
         </div>
       </div>
@@ -40,10 +39,28 @@ import { interval, Subscription } from 'rxjs';
       </div>
     </div>
   `,
-  styles: [`
-    .game-container {
+  styles: [`    .game-container {
       min-height: 100vh;
       background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+      transition: background 0.3s ease;
+    }
+
+    .game-container.flash-red {
+      background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 50%, #7F1D1D 100%) !important;
+      animation: flash-background 0.6s ease-out;
+    }
+
+    @keyframes flash-background {
+      0% { 
+        background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+      }
+      25% { 
+        background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 50%, #7F1D1D 100%);
+        box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.3);
+      }
+      100% { 
+        background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+      }
     }
 
     .game-header {
@@ -54,20 +71,34 @@ import { interval, Subscription } from 'rxjs';
       position: sticky;
       top: 0;
       z-index: 1000;
-    }
-
-    .game-info {
-      display: flex;
-      justify-content: space-between;
+    }    .game-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
       align-items: center;
-      flex-wrap: wrap;
       gap: 1rem;
+      width: 100%;
     }
 
-    .target-info, .current-info, .stats {
+    .target-info, .current-info {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      min-width: 0; /* Allow text truncation */
+    }
+
+    .target-info .value, .current-info .value {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 300px;
+    }
+
+    .stats {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-self: end;
+      white-space: nowrap;
     }
 
     .label {
@@ -78,11 +109,36 @@ import { interval, Subscription } from 'rxjs';
     .value {
       color: #E5E7EB;
       font-weight: 500;
+    }    .stats {
+      gap: 1rem;
+    }    .stats .value {
+      font-family: 'Courier New', 'Monaco', monospace;
+      min-width: fit-content;
+      transition: all 0.1s ease-in-out;
+    }.time-display {
+      display: inline-block;
+      min-width: 85px;
+      text-align: center;
+      font-family: 'Courier New', 'Monaco', monospace;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      background: rgba(139, 92, 246, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
     }
 
-    .stats {
-      gap: 1rem;
-    }    .article-container {
+    .articles-display {
+      display: inline-block;
+      min-width: 30px;
+      text-align: center;
+      font-family: 'Courier New', 'Monaco', monospace;
+      font-weight: 600;
+      background: rgba(139, 92, 246, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }.article-container {
       max-width: 1000px;
       margin: 0 auto;
       padding: 4rem;
@@ -196,16 +252,106 @@ import { interval, Subscription } from 'rxjs';
       border-radius: 6px;
       position: relative;
       background: linear-gradient(135deg, transparent, rgba(30, 64, 175, 0.05));
+    }    /* Style for Wikipedia links (clickable) */
+    .article-content :global(a[href^="./"]) {
+      color: #1E40AF;
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(59, 130, 246, 0.05));
+      border: 2px solid rgba(34, 197, 94, 0.3);
+      position: relative;
+      font-weight: 600;
+      padding: 4px 8px;
+      box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
     }
 
-    .article-content :global(a:hover) {
+    .article-content :global(a[href^="./"]:before) {
+      content: "✅ ";
+      font-size: 1em;
+      margin-right: 2px;
+      opacity: 0.9;
+      color: #22C55E;
+      font-weight: bold;
+    }
+
+    .article-content :global(a[href^="./"]:after) {
+      content: " [CLICK]";
+      font-size: 0.7em;
+      color: #22C55E;
+      font-weight: bold;
+      text-decoration: none;
+      opacity: 0.8;
+      margin-left: 4px;
+      background: rgba(34, 197, 94, 0.1);
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .article-content :global(a[href^="./"]:hover) {
       color: #1D4ED8;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1));
-      border-bottom-color: #3B82F6;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(59, 130, 246, 0.1));
+      border-color: rgba(34, 197, 94, 0.5);
       text-decoration: none;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-    }    .article-content :global(p) {
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3), 0 0 0 2px rgba(34, 197, 94, 0.1);
+      animation: pulse-green 0.5s ease-in-out;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3), 0 0 0 2px rgba(34, 197, 94, 0.1); }
+      50% { box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4), 0 0 0 3px rgba(34, 197, 94, 0.2); }
+    }/* Style for external links (non-clickable) */
+    .article-content :global(a:not([href^="./"])) {
+      color: #EF4444 !important;
+      cursor: not-allowed !important;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(185, 28, 28, 0.05)) !important;
+      border: 2px dashed rgba(239, 68, 68, 0.4) !important;
+      opacity: 0.8;
+      text-decoration: line-through;
+      font-weight: 400;
+      position: relative;
+      filter: grayscale(70%);
+      box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.2);
+      padding: 4px 8px;
+    }
+
+    .article-content :global(a:not([href^="./"])):before {
+      content: "🚫 ";
+      font-size: 1em;
+      margin-right: 2px;
+      opacity: 1;
+      color: #EF4444;
+      font-weight: bold;
+    }
+
+    .article-content :global(a:not([href^="./"])):after {
+      content: " [DISABLED]";
+      font-size: 0.7em;
+      color: #EF4444;
+      font-weight: bold;
+      text-decoration: none;
+      opacity: 0.9;
+      margin-left: 4px;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .article-content :global(a:not([href^="./"])):hover {
+      color: #DC2626 !important;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.1)) !important;
+      transform: none !important;
+      box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.3), 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
+      border-color: rgba(239, 68, 68, 0.6) !important;
+      animation: shake 0.3s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }.article-content :global(p) {
       margin: 1.5rem 0;
       color: #374151;
       font-size: 1.1rem;
@@ -364,12 +510,18 @@ import { interval, Subscription } from 'rxjs';
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
+    }    @media (max-width: 768px) {
       .game-info {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+      
+      .stats {
+        justify-self: start;
+      }
+      
+      .time-display {
+        min-width: 75px;
       }
         .article-container {
         margin: 1rem;
@@ -423,8 +575,7 @@ export class GameViewComponent implements OnInit, OnDestroy {
     this.timerSubscription = interval(10).subscribe(() => {
       this.elapsedTime = this.gameService.getElapsedTime();
     });
-  }
-  private loadCurrentArticle(): void {
+  }  private loadCurrentArticle(): void {
     if (this.gameState.currentArticle) {
       this.isLoading = true;
       this.wikipediaService.getArticle(this.gameState.currentArticle).subscribe({
@@ -435,9 +586,10 @@ export class GameViewComponent implements OnInit, OnDestroy {
           };
           this.isLoading = false;
           
-          // Scroll to top when new article loads
+          // Scroll to top when new article loads and process links
           setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            this.processArticleLinks();
           }, 100);
         },
         error: (error) => {
@@ -447,18 +599,48 @@ export class GameViewComponent implements OnInit, OnDestroy {
       });
     }
   }
+  private processArticleLinks(): void {
+    // Add titles to help users understand which links are clickable
+    const wikipediaLinks = document.querySelectorAll('a[href^="./"]');
+    wikipediaLinks.forEach(link => {
+      link.setAttribute('title', '✅ Wikipedia article - Click to navigate and continue your speedrun!');
+      link.classList.add('wiki-link-enabled');
+    });
 
-  onContentClick(event: Event): void {
+    const externalLinks = document.querySelectorAll('a:not([href^="./"])');
+    externalLinks.forEach(link => {
+      link.setAttribute('title', '🚫 External link - This link is disabled during speedrun for fair play');
+      link.classList.add('external-link-disabled');
+      // Make it completely non-interactive
+      link.setAttribute('tabindex', '-1');
+    });
+  }  onContentClick(event: Event): void {
     const target = event.target as HTMLElement;
     
     if (target.tagName === 'A') {
       event.preventDefault();
       const href = target.getAttribute('href');
       
+      // Only allow Wikipedia article links (starting with './')
       if (href && href.startsWith('./')) {
         const articleTitle = decodeURIComponent(href.substring(2));
         this.navigateToArticle(articleTitle);
+      } else {
+        // For non-Wikipedia links, flash red background to show it's disabled
+        this.flashRedBackground();
       }
+    }
+  }
+
+  private flashRedBackground(): void {
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer) {
+      gameContainer.classList.add('flash-red');
+      
+      // Remove the class after animation completes
+      setTimeout(() => {
+        gameContainer.classList.remove('flash-red');
+      }, 600);
     }
   }
 
@@ -473,13 +655,13 @@ export class GameViewComponent implements OnInit, OnDestroy {
     
     this.loadCurrentArticle();
   }
-
   formatTime(milliseconds: number): string {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     const ms = Math.floor((milliseconds % 1000) / 10);
     
+    // Always format as MM:SS.ss to maintain consistent width
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
   }
 }

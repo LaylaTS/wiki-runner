@@ -27,9 +27,7 @@ import { GameService } from '../services/game.service';
               <div class="stat-label">Articles Visited</div>
             </div>
           </div>
-        </div>
-
-        <div class="secondary-stats">
+        </div>        <div class="secondary-stats">
           <div class="stat-card target-card">
             <div class="stat-icon">🎯</div>
             <div class="stat-content">
@@ -41,8 +39,51 @@ import { GameService } from '../services/game.service';
           <div class="stat-card efficiency-card">
             <div class="stat-icon">⚡</div>
             <div class="stat-content">
-              <div class="stat-value">{{ getEfficiencyRating() }}</div>
-              <div class="stat-label">Performance</div>
+              <div class="stat-value">{{ getOverallRating().rank }}</div>
+              <div class="stat-label">Overall Performance</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Performance Rankings -->
+        <div class="performance-rankings">
+          <div class="ranking-grid">            <div class="rank-card time-rank">
+              <div class="rank-header">
+                <div class="rank-icon">⏱️</div>
+                <div class="rank-title">Time Rank</div>
+              </div>
+              <div class="rank-content">
+                <div class="rank-display">
+                  <div class="rank-grade">{{ getTimeRating().rank }}</div>
+                  <div class="rank-description">{{ getTimeRating().description }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rank-card efficiency-rank">
+              <div class="rank-header">
+                <div class="rank-icon">🎯</div>
+                <div class="rank-title">Click Efficiency</div>
+              </div>
+              <div class="rank-content">
+                <div class="rank-display">
+                  <div class="rank-grade">{{ getClickRating().rank }}</div>
+                  <div class="rank-description">{{ getClickRating().description }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rank-card overall-rank">
+              <div class="rank-header">
+                <div class="rank-icon">🏆</div>
+                <div class="rank-title">Overall Rank</div>
+              </div>
+              <div class="rank-content">
+                <div class="rank-display">
+                  <div class="rank-grade">{{ getOverallRating().rank }}</div>
+                  <div class="rank-description">{{ getOverallRating().description }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -60,26 +101,29 @@ import { GameService } from '../services/game.service';
               <div *ngIf="i < gameState.visitedArticles.length - 1" class="arrow">→</div>
             </div>
           </div>
-        </div>
-
-        <div class="action-buttons">
+        </div>        <div class="action-buttons">
           <button class="play-again-btn" (click)="playAgain()">
             🔄 Play Again
           </button>
-          <button class="new-target-btn" (click)="newTarget()">
-            🎯 New Target
-          </button>
-        </div>
-
-        <div class="performance-analysis">
-          <h4>Performance Analysis</h4>
-          <div class="analysis-item">
-            <span class="metric">Average time per article:</span>
-            <span class="value">{{ formatTime(elapsedTime / gameState.clickCount) }}</span>
-          </div>
-          <div class="analysis-item">
-            <span class="metric">Efficiency rating:</span>
-            <span class="value">{{ getEfficiencyRating() }}</span>
+        </div><div class="performance-analysis">
+          <h4>📊 Detailed Performance Analysis</h4>
+          <div class="analysis-grid">
+            <div class="analysis-item">
+              <span class="metric">Average time per article:</span>
+              <span class="value">{{ formatTime(elapsedTime / gameState.clickCount) }}</span>
+            </div>
+            <div class="analysis-item">
+              <span class="metric">Total completion time:</span>
+              <span class="value">{{ formatTime(elapsedTime) }}</span>
+            </div>
+            <div class="analysis-item">
+              <span class="metric">Navigation efficiency:</span>
+              <span class="value">{{ getNavigationEfficiency() }}%</span>
+            </div>
+            <div class="analysis-item">
+              <span class="metric">Speed category:</span>
+              <span class="value">{{ getSpeedCategory() }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -186,12 +230,10 @@ import { GameService } from '../services/game.service';
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1.5rem;
       margin-bottom: 2rem;
-    }
-
-    .stat-card {
+    }    .stat-card {
       background: rgba(139, 92, 246, 0.1);
       border: 1px solid #4C1D95;
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 1.5rem;
       display: flex;
       align-items: center;
@@ -214,12 +256,125 @@ import { GameService } from '../services/game.service';
       color: #E5E7EB;
       margin-bottom: 0.3rem;
       word-break: break-word;
-    }
-
-    .stat-card .stat-label {
+    }    .stat-card .stat-label {
       color: #8B5CF6;
       font-weight: 500;
       font-size: 0.9rem;
+    }    .performance-rankings {
+      margin: 2rem 0;
+      padding: 2rem;
+      background: rgba(30, 27, 75, 0.4);
+      border-radius: 20px;
+      border: 2px solid #4C1D95;
+    }    .ranking-grid {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      gap: 1rem;
+      flex-wrap: nowrap;
+    }    .rank-card {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
+      border: 2px solid transparent;
+      border-radius: 24px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      min-width: 180px;
+      max-width: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rank-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+
+    .rank-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
+    }
+
+    .rank-card:hover::before {
+      opacity: 0.1;
+    }    .time-rank {
+      border-color: #10B981;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.25));
+    }
+
+    .efficiency-rank {
+      border-color: #F59E0B;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25));
+    }
+
+    .overall-rank {
+      border-color: #8B5CF6;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(59, 130, 246, 0.25));
+    }
+
+    .rank-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .rank-icon {
+      font-size: 1.5rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .rank-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #E5E7EB;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }    .rank-content {
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .rank-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .rank-grade {
+      font-size: 3rem;
+      font-weight: bold;
+      background: linear-gradient(45deg, #8B5CF6, #3B82F6, #10B981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+      50% { filter: hue-rotate(30deg) brightness(1.2); }
+    }
+
+    .rank-description {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #E5E7EB;
     }
 
     .path-section {
@@ -238,20 +393,17 @@ import { GameService } from '../services/game.service';
       flex-direction: column;
       gap: 0.5rem;
       max-height: 300px;
-      overflow-y: auto;
-      padding: 1rem;
+      overflow-y: auto;      padding: 1rem;
       background: rgba(30, 27, 75, 0.3);
-      border-radius: 12px;
+      border-radius: 16px;
       border: 1px solid #4C1D95;
-    }
-
-    .path-item {
+    }    .path-item {
       display: flex;
       align-items: center;
       gap: 1rem;
       padding: 0.75rem;
       background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
+      border-radius: 12px;
       transition: all 0.3s ease;
     }
 
@@ -292,60 +444,61 @@ import { GameService } from '../services/game.service';
       justify-content: center;
       margin: 2rem 0;
       flex-wrap: wrap;
-    }
-
-    .play-again-btn,
-    .new-target-btn {
-      padding: 1rem 2rem;
-      font-size: 1.1rem;
+    }    .play-again-btn {
+      padding: 1.25rem 3rem;
+      font-size: 1.2rem;
       font-weight: bold;
       border: none;
-      border-radius: 12px;
+      border-radius: 20px;
       cursor: pointer;
       transition: all 0.3s ease;
-      min-width: 150px;
-    }
-
-    .play-again-btn {
+      min-width: 200px;
       background: linear-gradient(45deg, #10B981, #059669);
       color: white;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .play-again-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+      background: linear-gradient(45deg, #059669, #047857);
     }
 
-    .new-target-btn {
-      background: linear-gradient(45deg, #8B5CF6, #3B82F6);
-      color: white;
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-    }
-
-    .new-target-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-    }
-
-    .performance-analysis {
+    .play-again-btn:active {
+      transform: translateY(-1px) scale(1.02);
+    }.performance-analysis {
       margin-top: 2rem;
       padding: 1.5rem;
       background: rgba(30, 27, 75, 0.3);
-      border-radius: 12px;
+      border-radius: 16px;
       border: 1px solid #4C1D95;
-    }
-
-    .performance-analysis h4 {
+    }.performance-analysis h4 {
       color: #E5E7EB;
       margin-bottom: 1rem;
+      text-align: center;
     }
 
-    .analysis-item {
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }    .analysis-item {
       display: flex;
       justify-content: space-between;
-      margin: 0.5rem 0;
+      align-items: center;
+      padding: 0.75rem;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
       color: #E5E7EB;
+      transition: all 0.3s ease;
+    }
+
+    .analysis-item:hover {
+      background: rgba(139, 92, 246, 0.15);
+      transform: translateY(-2px);
     }
 
     .metric {
@@ -354,9 +507,8 @@ import { GameService } from '../services/game.service';
 
     .value {
       font-weight: bold;
-    }
-
-    @media (max-width: 768px) {      .completion-card {
+    }    @media (max-width: 768px) {
+      .completion-card {
         padding: 2rem;
         margin: 1rem;
       }
@@ -380,6 +532,25 @@ import { GameService } from '../services/game.service';
       }
       
       .secondary-stats {
+        grid-template-columns: 1fr;
+      }      .ranking-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .rank-card {
+        padding: 1.25rem;
+        min-width: auto;
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .rank-grade {
+        font-size: 2.5rem;
+      }
+
+      .analysis-grid {
         grid-template-columns: 1fr;
       }
       
@@ -409,7 +580,6 @@ export class EndGameComponent implements OnInit {
     
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
   }
-
   getEfficiencyRating(): string {
     const clicks = this.gameState.clickCount;
     
@@ -418,6 +588,116 @@ export class EndGameComponent implements OnInit {
     if (clicks <= 8) return "🎯 Good";
     if (clicks <= 12) return "👍 Average";
     return "🔄 Keep Practicing";
+  }
+  getTimeRating(): { rank: string, description: string } {
+    const timeInSeconds = this.elapsedTime / 1000;
+    
+    if (timeInSeconds <= 30) {
+      return { rank: "S+", description: "Lightning Fast" };
+    } else if (timeInSeconds <= 60) {
+      return { rank: "S", description: "Blazing Speed" };
+    } else if (timeInSeconds <= 120) {
+      return { rank: "A+", description: "Very Fast" };
+    } else if (timeInSeconds <= 180) {
+      return { rank: "A", description: "Fast" };
+    } else if (timeInSeconds <= 300) {
+      return { rank: "B+", description: "Good Speed" };
+    } else if (timeInSeconds <= 480) {
+      return { rank: "B", description: "Average Speed" };
+    } else if (timeInSeconds <= 600) {
+      return { rank: "C+", description: "Moderate Speed" };
+    } else if (timeInSeconds <= 900) {
+      return { rank: "C", description: "Slow" };
+    } else {
+      return { rank: "D", description: "Very Slow" };
+    }
+  }
+  getClickRating(): { rank: string, description: string } {
+    const clicks = this.gameState.clickCount;
+    
+    if (clicks <= 2) {
+      return { rank: "S+", description: "Perfect Path" };
+    } else if (clicks <= 3) {
+      return { rank: "S", description: "Near Perfect" };
+    } else if (clicks <= 5) {
+      return { rank: "A+", description: "Excellent" };
+    } else if (clicks <= 7) {
+      return { rank: "A", description: "Very Good" };
+    } else if (clicks <= 10) {
+      return { rank: "B+", description: "Good" };
+    } else if (clicks <= 15) {
+      return { rank: "B", description: "Average" };
+    } else if (clicks <= 20) {
+      return { rank: "C+", description: "Below Average" };
+    } else if (clicks <= 30) {
+      return { rank: "C", description: "Poor" };
+    } else {
+      return { rank: "D", description: "Very Poor" };
+    }
+  }
+  getOverallRating(): { rank: string, description: string } {
+    const timeRating = this.getTimeRating();
+    const clickRating = this.getClickRating();
+    
+    // Convert ranks to numeric scores for calculation
+    const rankToScore = (rank: string): number => {
+      switch(rank) {
+        case 'S+': return 10;
+        case 'S': return 9;
+        case 'A+': return 8;
+        case 'A': return 7;
+        case 'B+': return 6;
+        case 'B': return 5;
+        case 'C+': return 4;
+        case 'C': return 3;
+        case 'D': return 2;
+        default: return 1;
+      }
+    };
+
+    const timeScore = rankToScore(timeRating.rank);
+    const clickScore = rankToScore(clickRating.rank);
+    
+    // Weight time and clicks equally for overall score
+    const averageScore = (timeScore + clickScore) / 2;
+    
+    if (averageScore >= 9.5) {
+      return { rank: "S+", description: "Speedrun Master" };
+    } else if (averageScore >= 8.5) {
+      return { rank: "S", description: "Elite Runner" };
+    } else if (averageScore >= 7.5) {
+      return { rank: "A+", description: "Expert" };
+    } else if (averageScore >= 6.5) {
+      return { rank: "A", description: "Skilled" };
+    } else if (averageScore >= 5.5) {
+      return { rank: "B+", description: "Competent" };
+    } else if (averageScore >= 4.5) {
+      return { rank: "B", description: "Average" };
+    } else if (averageScore >= 3.5) {
+      return { rank: "C+", description: "Developing" };
+    } else if (averageScore >= 2.5) {
+      return { rank: "C", description: "Beginner" };
+    } else {
+      return { rank: "D", description: "Practice More" };
+    }
+  }
+
+  getNavigationEfficiency(): number {
+    // Calculate efficiency based on ideal minimum clicks (usually 2-3) vs actual clicks
+    const idealClicks = 3; // Assume most articles can be reached in 3 clicks ideally
+    const actualClicks = this.gameState.clickCount;
+    const efficiency = Math.max(0, Math.min(100, (idealClicks / actualClicks) * 100));
+    return Math.round(efficiency);
+  }
+
+  getSpeedCategory(): string {
+    const timeInSeconds = this.elapsedTime / 1000;
+    
+    if (timeInSeconds <= 60) return "Speed Demon";
+    if (timeInSeconds <= 180) return "Quick Navigator";
+    if (timeInSeconds <= 300) return "Steady Explorer";
+    if (timeInSeconds <= 600) return "Casual Browser";
+    return "Methodical Researcher";
   }
 
   playAgain(): void {
