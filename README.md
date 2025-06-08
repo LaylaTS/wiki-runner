@@ -10,6 +10,7 @@ I normally don't use AI like this - mainly just using Copilot for autocompletion
 Here's the first prompt and AI response:
 ![First Prompt](screenshots/firstPrompt.png)
 
+
 ### Bug Fix
 The AI had an issue where it was trying to run a command that didn't work, so I told it that the operator doesn't exist. That way it stopped trying to run the command over and over:
 ![Non-existent Operator](screenshots/nonExistentOperator.png)
